@@ -1,6 +1,6 @@
 const rectanglesContainer = document.querySelector('.rectangles-container');
 
-const arrayOfRectangles = [
+export const arrayOfRectangles = [
   {
     width: 120,
     height: 60,
@@ -24,6 +24,7 @@ arrayOfRectangles.forEach((rectangleData) => {
   const text = document.createElement('span');
 
   rectangle.classList.add('rectangle');
+  rectangle.draggable = 'true';
 
   text.textContent = `${width}x${height}`;
   rectangle.appendChild(text);
