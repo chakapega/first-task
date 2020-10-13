@@ -54,41 +54,25 @@ export class Canvas {
     this.drawRectangles();
   }
 
-  checkIntersectionRectangles(rectA, rectB) {
-    let xAxisIntersection = false;
-    let yAxisIntersection = false;
-    const arrayOfXCoordinatesOfRectA = [];
-    const arrayOfXCoordinatesOfRectB = [];
-    const arrayOfYCoordinatesOfRectA = [];
-    const arrayOfYCoordinatesOfRectB = [];
+  checkIntersectionRectangles(rectangleA, rectangleB) {
+    const topSideOfRectangleA = rectangleA.y;
+    const leftSideOfRectangleA = rectangleA.x;
+    const rightSideOfRectangleA = rectangleA.x + rectangleA.width;
+    const bottomSideOfRectangleA = rectangleA.y + rectangleA.height;
+    const topSideOfRectangleB = rectangleB.y;
+    const leftSideOfRectangleB = rectangleB.x;
+    const rightSideOfRectangleB = rectangleB.x + rectangleB.width;
+    const bottomSideOfRectangleB = rectangleB.y + rectangleB.height;
 
-    for (let i = rectA.x; i < rectA.x + rectA.width; i++) {
-      arrayOfXCoordinatesOfRectA.push(i);
+    if (bottomSideOfRectangleA <= topSideOfRectangleB || rightSideOfRectangleA <= leftSideOfRectangleB) {
+      return false;
     }
 
-    for (let i = rectB.x; i < rectB.x + rectB.width; i++) {
-      arrayOfXCoordinatesOfRectB.push(i);
+    if (topSideOfRectangleA >= bottomSideOfRectangleB || rightSideOfRectangleB <= leftSideOfRectangleA) {
+      return false;
     }
 
-    for (let i = rectA.y; i < rectA.y + rectA.height; i++) {
-      arrayOfYCoordinatesOfRectA.push(i);
-    }
-
-    for (let i = rectB.y; i < rectB.y + rectB.height; i++) {
-      arrayOfYCoordinatesOfRectB.push(i);
-    }
-
-    arrayOfXCoordinatesOfRectA.forEach(xCoordinateOfRectA => {
-      if (arrayOfXCoordinatesOfRectB.includes(xCoordinateOfRectA)) xAxisIntersection = true;
-    });
-
-    arrayOfYCoordinatesOfRectA.forEach(yCoordinateOfRectA => {
-      arrayOfYCoordinatesOfRectB.forEach(yCoordinateOfRectB => {
-        if (yCoordinateOfRectA === yCoordinateOfRectB) yAxisIntersection = true;
-      });
-    });
-
-    return xAxisIntersection && yAxisIntersection;
+    return true;
   }
 
   addMouseDownHandler() {
