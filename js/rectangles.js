@@ -1,5 +1,3 @@
-const rectanglesContainer = document.querySelector('.rectangles-container');
-
 export const arrayOfRectangles = [
   {
     width: 120,
@@ -17,17 +15,3 @@ export const arrayOfRectangles = [
     id: Date.now(),
   },
 ];
-
-arrayOfRectangles.forEach((rectangleData) => {
-  const { width, height } = rectangleData;
-  const rectangle = document.createElement('div');
-  const text = document.createElement('span');
-
-  rectangle.classList.add('rectangle');
-  rectangle.draggable = 'true';
-
-  text.textContent = `${width}x${height}`;
-  rectangle.appendChild(text);
-
-  rectanglesContainer.appendChild(rectangle);
-});
