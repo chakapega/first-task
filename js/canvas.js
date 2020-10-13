@@ -1,8 +1,9 @@
 import { arrayOfRectangles } from './rectangles.js';
+import { canvasWindowIndent } from './shared/constants.js';
 
 export class Canvas {
-  constructor() {
-    this.canvas = document.querySelector('#canvas');
+  constructor(canvasId) {
+    this.canvas = document.getElementById(canvasId);
     this.ctx = this.canvas.getContext('2d');
     this.isDragOk = false;
     this.xStart;
@@ -21,8 +22,8 @@ export class Canvas {
   setSize() {
     const { innerWidth: width, innerHeight: height } = window;
 
-    this.canvas.width = width - 40;
-    this.canvas.height = height - 40;
+    this.canvas.width = width - canvasWindowIndent;
+    this.canvas.height = height - canvasWindowIndent;
   }
 
   setOffsetXandY() {
@@ -35,11 +36,10 @@ export class Canvas {
 
   draw() {
     this.clear();
-    this.ctx.fillStyle = 'black';
 
-    arrayOfRectangles.forEach((rectangleData) => {
+    arrayOfRectangles.forEach(rectangleData => {
       const { x, y, width, height } = rectangleData;
-
+      this.ctx.fillStyle = rectangleData.fillColor;
       this.ctx.fillRect(x, y, width, height);
     });
   }
@@ -55,8 +55,7 @@ export class Canvas {
   }
 
   addMouseDownHandler() {
-    this.canvas.addEventListener('mousedown', (e) => {
-      console.log('mousedown');
+    this.canvas.addEventListener('mousedown', e => {
       e.preventDefault();
       e.stopPropagation();
 
@@ -65,7 +64,7 @@ export class Canvas {
 
       this.isDragOk = false;
 
-      arrayOfRectangles.forEach((rectangle) => {
+      arrayOfRectangles.forEach(rectangle => {
         if (
           currentX > rectangle.x &&
           currentX < rectangle.x + rectangle.width &&
@@ -83,8 +82,7 @@ export class Canvas {
   }
 
   addMouseMoveHandler() {
-    this.canvas.addEventListener('mousemove', (e) => {
-      console.log('mousemove');
+    this.canvas.addEventListener('mousemove', e => {
       if (this.isDragOk) {
         e.preventDefault();
         e.stopPropagation();
@@ -94,7 +92,7 @@ export class Canvas {
         const xMovedDistance = currentX - this.xStart;
         const yNovedDistance = currentY - this.yStart;
 
-        arrayOfRectangles.forEach((rectangle) => {
+        arrayOfRectangles.forEach(rectangle => {
           if (rectangle.isDragging) {
             rectangle.x += xMovedDistance;
             rectangle.y += yNovedDistance;
@@ -109,13 +107,13 @@ export class Canvas {
   }
 
   addMouseUpHandler() {
-    this.canvas.addEventListener('mouseup', (e) => {
+    this.canvas.addEventListener('mouseup', e => {
       e.preventDefault();
       e.stopPropagation();
 
       this.isDragOk = false;
 
-      arrayOfRectangles.forEach((rectangle) => {
+      arrayOfRectangles.forEach(rectangle => {
         if (rectangle.isDragging === true) rectangle.isDragging = false;
       });
     });
