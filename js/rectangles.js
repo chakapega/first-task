@@ -1,17 +1,18 @@
 export const arrayOfRectangles = [
   {
+    x: 20,
+    y: 20,
     width: 120,
     height: 60,
-    id: Date.now(),
+    id: 1,
+    isDragging: false,
   },
   {
-    width: 170,
+    x: 20,
+    y: 110,
+    width: 160,
     height: 60,
-    id: Date.now(),
-  },
-  {
-    width: 80,
-    height: 60,
-    id: Date.now(),
+    id: 2,
+    isDragging: false,
   },
 ];

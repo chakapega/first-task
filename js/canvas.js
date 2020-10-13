@@ -4,6 +4,9 @@ export class Canvas {
   constructor() {
     this.canvas = document.querySelector('#canvas');
     this.ctx = this.canvas.getContext('2d');
+    this.isDragOk = false;
+    this.xStart;
+    this.yStart;
   }
 
   setSize() {
@@ -13,26 +16,86 @@ export class Canvas {
     this.canvas.height = height - 40;
   }
 
-  renderStartedRectangles() {
-    let sumOfHeightsRenderedRectangles = 0;
+  setOffsetXandY() {
+    const domRect = canvas.getBoundingClientRect();
+    const { left, top } = domRect;
 
+    this.offsetX = left;
+    this.offsetY = top;
+  }
+
+  draw() {
+    this.clear();
     this.ctx.fillStyle = 'black';
 
-    arrayOfRectangles.forEach((rectangleData, index) => {
-      const { width, height } = rectangleData;
+    arrayOfRectangles.forEach((rectangleData) => {
+      const { x, y, width, height } = rectangleData;
 
-      if (index === 0) {
-        this.ctx.fillRect(20, 20, width, height);
-      } else {
-        this.ctx.fillRect(
-          20,
-          (index + 1) * 20 + sumOfHeightsRenderedRectangles,
-          width,
-          height
-        );
+      this.ctx.fillRect(x, y, width, height);
+    });
+  }
+
+  clear() {
+    const { width, height } = this.canvas;
+
+    this.ctx.clearRect(0, 0, width, height);
+  }
+
+  renderStartedRectangles() {
+    this.draw();
+  }
+
+  addMouseDownHandler() {
+    this.canvas.addEventListener('mousedown', (e) => {
+      console.log('mousedown');
+      e.preventDefault();
+      e.stopPropagation();
+
+      const currentX = e.clientX - this.offsetX;
+      const currentY = e.clientY - this.offsetY;
+
+      this.isDragOk = false;
+
+      arrayOfRectangles.forEach((rectangle) => {
+        if (
+          currentX > rectangle.x &&
+          currentX < rectangle.x + rectangle.width &&
+          currentY > rectangle.y &&
+          currentY < rectangle.y + rectangle.height
+        ) {
+          this.isDragOk = true;
+          rectangle.isDragging = true;
+        }
+      });
+
+      this.xStart = currentX;
+      this.yStart = currentY;
+    });
+  }
+
+  addMouseMoveHandler() {
+    this.canvas.addEventListener('mousemove', (e) => {
+      console.log('mousemove');
+      if (this.isDragOk) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const currentX = e.clientX - this.offsetX;
+        const currentY = e.clientY - this.offsetY;
+        const xMovedDistance = currentX - this.xStart;
+        const yNovedDistance = currentY - this.yStart;
+
+        arrayOfRectangles.forEach((rectangle) => {
+          if (rectangle.isDragging) {
+            rectangle.x += xMovedDistance;
+            rectangle.y += yNovedDistance;
+          }
+        });
+
+        this.draw();
+        this.xStart = currentX;
+        this.yStart = currentY;
       }
-
-      sumOfHeightsRenderedRectangles += height;
     });
   }
 }
