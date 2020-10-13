@@ -2,8 +2,8 @@ import { arrayOfRectangles } from './rectangles.js';
 import { canvasWindowIndent, startedRectangleFillColor, redColorInHex } from './shared/constants.js';
 
 export class Canvas {
-  constructor(canvasId) {
-    this.canvas = document.getElementById(canvasId);
+  constructor(selectedCanvas) {
+    this.canvas = selectedCanvas;
     this.ctx = this.canvas.getContext('2d');
     this.isDragOk = false;
     this.xStart;
@@ -104,36 +104,38 @@ export class Canvas {
 
   addMouseMoveHandler() {
     this.canvas.addEventListener('mousemove', e => {
-      if (this.isDragOk) {
-        e.preventDefault();
-        e.stopPropagation();
-
-        const currentX = e.clientX - this.offsetX;
-        const currentY = e.clientY - this.offsetY;
-        const xMovedDistance = currentX - this.xStart;
-        const yNovedDistance = currentY - this.yStart;
-
-        arrayOfRectangles.forEach(rectangle => {
-          if (rectangle.isDragging) {
-            rectangle.x += xMovedDistance;
-            rectangle.y += yNovedDistance;
-
-            arrayOfRectangles.forEach(addRect => {
-              if (rectangle !== addRect) {
-                if (this.checkRectanglesForIntersection(rectangle, addRect)) {
-                  addRect.fillColor = redColorInHex;
-                } else {
-                  addRect.fillColor = startedRectangleFillColor;
-                }
-              }
-            });
-          }
-        });
-
-        this.drawRectangles();
-        this.xStart = currentX;
-        this.yStart = currentY;
+      if (!this.isDragOk) {
+        return null;
       }
+
+      e.preventDefault();
+      e.stopPropagation();
+
+      const currentX = e.clientX - this.offsetX;
+      const currentY = e.clientY - this.offsetY;
+      const xMovedDistance = currentX - this.xStart;
+      const yNovedDistance = currentY - this.yStart;
+
+      arrayOfRectangles.forEach(rectangle => {
+        if (rectangle.isDragging) {
+          rectangle.x += xMovedDistance;
+          rectangle.y += yNovedDistance;
+
+          arrayOfRectangles.forEach(addRect => {
+            if (rectangle !== addRect) {
+              if (this.checkRectanglesForIntersection(rectangle, addRect)) {
+                addRect.fillColor = redColorInHex;
+              } else {
+                addRect.fillColor = startedRectangleFillColor;
+              }
+            }
+          });
+        }
+      });
+
+      this.drawRectangles();
+      this.xStart = currentX;
+      this.yStart = currentY;
     });
   }
 
