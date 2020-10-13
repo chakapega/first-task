@@ -54,7 +54,7 @@ export class Canvas {
     this.drawRectangles();
   }
 
-  checkIntersectionRectangles(rectangleA, rectangleB) {
+  checkRectanglesForIntersection(rectangleA, rectangleB) {
     const topSideOfRectangleA = rectangleA.y;
     const leftSideOfRectangleA = rectangleA.x;
     const rightSideOfRectangleA = rectangleA.x + rectangleA.width;
@@ -120,7 +120,7 @@ export class Canvas {
 
             arrayOfRectangles.forEach(addRect => {
               if (rectangle !== addRect) {
-                if (this.checkIntersectionRectangles(rectangle, addRect)) {
+                if (this.checkRectanglesForIntersection(rectangle, addRect)) {
                   addRect.fillColor = redColorInHex;
                 } else {
                   addRect.fillColor = startedRectangleFillColor;
