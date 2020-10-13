@@ -9,6 +9,15 @@ export class Canvas {
     this.yStart;
   }
 
+  start() {
+    this.setSize();
+    this.setOffsetXandY();
+    this.renderStartedRectangles();
+    this.addMouseDownHandler();
+    this.addMouseMoveHandler();
+    this.addMouseUpHandler();
+  }
+
   setSize() {
     const { innerWidth: width, innerHeight: height } = window;
 
@@ -96,6 +105,19 @@ export class Canvas {
         this.xStart = currentX;
         this.yStart = currentY;
       }
+    });
+  }
+
+  addMouseUpHandler() {
+    this.canvas.addEventListener('mouseup', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      this.isDragOk = false;
+
+      arrayOfRectangles.forEach((rectangle) => {
+        if (rectangle.isDragging === true) rectangle.isDragging = false;
+      });
     });
   }
 }
