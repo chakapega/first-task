@@ -1,5 +1,5 @@
 import { arrayOfRectangles } from './rectangles.js';
-import { canvasWindowIndent } from './shared/constants.js';
+import { canvasWindowIndent, startedRectangleFillColor, redColorInHex } from './shared/constants.js';
 
 export class Canvas {
   constructor(canvasId) {
@@ -34,7 +34,7 @@ export class Canvas {
     this.offsetY = top;
   }
 
-  draw() {
+  drawRectangles() {
     this.clear();
 
     arrayOfRectangles.forEach(rectangleData => {
@@ -51,7 +51,44 @@ export class Canvas {
   }
 
   renderStartedRectangles() {
-    this.draw();
+    this.drawRectangles();
+  }
+
+  checkIntersectionRectangles(rectA, rectB) {
+    let xAxisIntersection = false;
+    let yAxisIntersection = false;
+    const arrayOfXCoordinatesOfRectA = [];
+    const arrayOfXCoordinatesOfRectB = [];
+    const arrayOfYCoordinatesOfRectA = [];
+    const arrayOfYCoordinatesOfRectB = [];
+
+    for (let i = rectA.x; i < rectA.x + rectA.width; i++) {
+      arrayOfXCoordinatesOfRectA.push(i);
+    }
+
+    for (let i = rectB.x; i < rectB.x + rectB.width; i++) {
+      arrayOfXCoordinatesOfRectB.push(i);
+    }
+
+    for (let i = rectA.y; i < rectA.y + rectA.height; i++) {
+      arrayOfYCoordinatesOfRectA.push(i);
+    }
+
+    for (let i = rectB.y; i < rectB.y + rectB.height; i++) {
+      arrayOfYCoordinatesOfRectB.push(i);
+    }
+
+    arrayOfXCoordinatesOfRectA.forEach(xCoordinateOfRectA => {
+      if (arrayOfXCoordinatesOfRectB.includes(xCoordinateOfRectA)) xAxisIntersection = true;
+    });
+
+    arrayOfYCoordinatesOfRectA.forEach(yCoordinateOfRectA => {
+      arrayOfYCoordinatesOfRectB.forEach(yCoordinateOfRectB => {
+        if (yCoordinateOfRectA === yCoordinateOfRectB) yAxisIntersection = true;
+      });
+    });
+
+    return xAxisIntersection && yAxisIntersection;
   }
 
   addMouseDownHandler() {
@@ -96,10 +133,20 @@ export class Canvas {
           if (rectangle.isDragging) {
             rectangle.x += xMovedDistance;
             rectangle.y += yNovedDistance;
+
+            arrayOfRectangles.forEach(addRect => {
+              if (rectangle !== addRect) {
+                if (this.checkIntersectionRectangles(rectangle, addRect)) {
+                  addRect.fillColor = redColorInHex;
+                } else {
+                  addRect.fillColor = startedRectangleFillColor;
+                }
+              }
+            });
           }
         });
 
-        this.draw();
+        this.drawRectangles();
         this.xStart = currentX;
         this.yStart = currentY;
       }

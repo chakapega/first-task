@@ -9,6 +9,7 @@ export const arrayOfRectangles = [
     id: 1,
     isDragging: false,
     fillColor: startedRectangleFillColor,
+    isCrossed: false,
   },
   {
     x: 20,
@@ -18,6 +19,7 @@ export const arrayOfRectangles = [
     id: 2,
     isDragging: false,
     fillColor: startedRectangleFillColor,
+    isCrossed: false,
   },
   {
     x: 20,
@@ -27,5 +29,6 @@ export const arrayOfRectangles = [
     id: 3,
     isDragging: false,
     fillColor: startedRectangleFillColor,
+    isCrossed: false,
   },
 ];
