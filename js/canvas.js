@@ -56,15 +56,15 @@ export class Canvas {
     this.drawRectangles();
   }
 
-  checkRectanglesForIntersection(rectangleA, rectangleB) {
-    const topSideOfRectangleA = rectangleA.y;
-    const leftSideOfRectangleA = rectangleA.x;
-    const rightSideOfRectangleA = rectangleA.x + rectangleA.width;
-    const bottomSideOfRectangleA = rectangleA.y + rectangleA.height;
-    const topSideOfRectangleB = rectangleB.y;
-    const leftSideOfRectangleB = rectangleB.x;
-    const rightSideOfRectangleB = rectangleB.x + rectangleB.width;
-    const bottomSideOfRectangleB = rectangleB.y + rectangleB.height;
+  checkingForIntersectionOfRectAandB(rectA, rectB) {
+    const topSideOfRectangleA = rectA.y;
+    const leftSideOfRectangleA = rectA.x;
+    const rightSideOfRectangleA = rectA.x + rectA.width;
+    const bottomSideOfRectangleA = rectA.y + rectA.height;
+    const topSideOfRectangleB = rectB.y;
+    const leftSideOfRectangleB = rectB.x;
+    const rightSideOfRectangleB = rectB.x + rectB.width;
+    const bottomSideOfRectangleB = rectB.y + rectB.height;
 
     if (bottomSideOfRectangleA <= topSideOfRectangleB || rightSideOfRectangleA <= leftSideOfRectangleB) {
       return false;
@@ -75,6 +75,38 @@ export class Canvas {
     }
 
     return true;
+  }
+
+  checkRectangleForIntersection(rectA) {
+    let isCrossed = false;
+
+    arrayOfRectangles.forEach(rectB => {
+      if (rectA !== rectB && this.checkingForIntersectionOfRectAandB(rectA, rectB)) {
+        isCrossed = true;
+      }
+    });
+
+    return isCrossed;
+  }
+
+  setCrossedPropToRectangles() {
+    arrayOfRectangles.forEach(rect => {
+      if (this.checkRectangleForIntersection(rect)) {
+        rect.isCrossed = true;
+      } else {
+        rect.isCrossed = false;
+      }
+    });
+  }
+
+  setColorPropToRectangles() {
+    arrayOfRectangles.forEach(rect => {
+      if (rect.isCrossed) {
+        rect.fillColor = redColorInHex;
+      } else {
+        rect.fillColor = startedRectangleFillColor;
+      }
+    });
   }
 
   mouseDownHandler(e) {
@@ -122,17 +154,8 @@ export class Canvas {
         rectangle.x += xMovedDistance;
         rectangle.y += yNovedDistance;
 
-        arrayOfRectangles.forEach(addRect => {
-          if (rectangle !== addRect) {
-            if (this.checkRectanglesForIntersection(rectangle, addRect)) {
-              addRect.fillColor = redColorInHex;
-              addRect.isCrossed = true;
-            } else {
-              addRect.fillColor = startedRectangleFillColor;
-              addRect.isCrossed = false;
-            }
-          }
-        });
+        this.setCrossedPropToRectangles();
+        this.setColorPropToRectangles();
       }
     });
 
@@ -158,6 +181,8 @@ export class Canvas {
           }
         });
 
+        this.setCrossedPropToRectangles();
+        this.setColorPropToRectangles();
         this.drawRectangles();
       }
     });
