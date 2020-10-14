@@ -28,4 +28,13 @@ export const arrayOfRectangles = [
     fillColor: startedRectangleFillColor,
     isCrossed: false,
   },
+  {
+    x: 20,
+    y: 290,
+    width: 40,
+    height: 60,
+    isDragging: false,
+    fillColor: startedRectangleFillColor,
+    isCrossed: false,
+  },
 ];

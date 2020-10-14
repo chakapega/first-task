@@ -18,5 +18,6 @@ body {
 }
 
 #canvas {
+  cursor: pointer;
   border: 2px solid #3d3030;
 }

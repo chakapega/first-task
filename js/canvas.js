@@ -15,7 +15,7 @@ export class Canvas {
   start() {
     this.setSize();
     this.setOffsetXandY();
-    this.drawStartedRectangles();
+    this.drawRectangles();
     this.canvas.addEventListener('mousedown', e => this.mouseDownHandler(e));
     this.canvas.addEventListener('mousemove', e => this.mouseMoveHandler(e));
     this.canvas.addEventListener('mouseup', e => this.mouseUpHandler(e));
@@ -41,6 +41,7 @@ export class Canvas {
 
     arrayOfRectangles.forEach(rectangleData => {
       const { x, y, width, height } = rectangleData;
+
       this.ctx.fillStyle = rectangleData.fillColor;
       this.ctx.fillRect(x, y, width, height);
     });
@@ -50,10 +51,6 @@ export class Canvas {
     const { width, height } = this.canvas;
 
     this.ctx.clearRect(0, 0, width, height);
-  }
-
-  drawStartedRectangles() {
-    this.drawRectangles();
   }
 
   checkingForIntersectionOfRectAandB(rectA, rectB) {
@@ -125,10 +122,10 @@ export class Canvas {
         currentY > rectangle.y &&
         currentY < rectangle.y + rectangle.height
       ) {
-        this.isDragOk = true;
-        rectangle.isDragging = true;
         this.startX = rectangle.x;
         this.startY = rectangle.y;
+        this.isDragOk = true;
+        rectangle.isDragging = true;
       }
     });
 
@@ -153,7 +150,6 @@ export class Canvas {
       if (rectangle.isDragging) {
         rectangle.x += xMovedDistance;
         rectangle.y += yNovedDistance;
-
         this.setCrossedPropToRectangles();
         this.setColorPropToRectangles();
       }
