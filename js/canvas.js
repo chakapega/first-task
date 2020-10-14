@@ -6,8 +6,10 @@ export class Canvas {
     this.canvas = selectedCanvas;
     this.ctx = this.canvas.getContext('2d');
     this.isDragOk = false;
-    this.xStart;
-    this.yStart;
+    this.prevX;
+    this.prevY;
+    this.startX;
+    this.startY;
   }
 
   start() {
@@ -94,49 +96,57 @@ export class Canvas {
         ) {
           this.isDragOk = true;
           rectangle.isDragging = true;
+          this.startX = rectangle.x;
+          this.startY = rectangle.y;
         }
       });
 
-      this.xStart = currentX;
-      this.yStart = currentY;
+      this.prevX = currentX;
+      this.prevY = currentY;
     });
   }
 
   addMouseMoveHandler() {
     this.canvas.addEventListener('mousemove', e => {
-      if (!this.isDragOk) {
-        return null;
-      }
-
       e.preventDefault();
       e.stopPropagation();
 
-      const currentX = e.clientX - this.offsetX;
-      const currentY = e.clientY - this.offsetY;
-      const xMovedDistance = currentX - this.xStart;
-      const yNovedDistance = currentY - this.yStart;
-
-      arrayOfRectangles.forEach(rectangle => {
-        if (rectangle.isDragging) {
-          rectangle.x += xMovedDistance;
-          rectangle.y += yNovedDistance;
-
-          arrayOfRectangles.forEach(addRect => {
-            if (rectangle !== addRect) {
-              if (this.checkRectanglesForIntersection(rectangle, addRect)) {
-                addRect.fillColor = redColorInHex;
-              } else {
-                addRect.fillColor = startedRectangleFillColor;
-              }
-            }
-          });
-        }
-      });
-
-      this.drawRectangles();
-      this.xStart = currentX;
-      this.yStart = currentY;
+      this.moveRectangle(e);
     });
+  }
+
+  moveRectangle(e) {
+    if (!this.isDragOk) {
+      return null;
+    }
+
+    const currentX = e.clientX - this.offsetX;
+    const currentY = e.clientY - this.offsetY;
+    const xMovedDistance = currentX - this.prevX;
+    const yNovedDistance = currentY - this.prevY;
+
+    arrayOfRectangles.forEach(rectangle => {
+      if (rectangle.isDragging) {
+        rectangle.x += xMovedDistance;
+        rectangle.y += yNovedDistance;
+
+        arrayOfRectangles.forEach(addRect => {
+          if (rectangle !== addRect) {
+            if (this.checkRectanglesForIntersection(rectangle, addRect)) {
+              addRect.fillColor = redColorInHex;
+              addRect.isCrossed = true;
+            } else {
+              addRect.fillColor = startedRectangleFillColor;
+              addRect.isCrossed = false;
+            }
+          }
+        });
+      }
+    });
+
+    this.drawRectangles();
+    this.prevX = currentX;
+    this.prevY = currentY;
   }
 
   addMouseUpHandler() {
@@ -147,7 +157,18 @@ export class Canvas {
       this.isDragOk = false;
 
       arrayOfRectangles.forEach(rectangle => {
-        if (rectangle.isDragging === true) rectangle.isDragging = false;
+        if (rectangle.isDragging) {
+          rectangle.isDragging = false;
+
+          arrayOfRectangles.forEach(addRect => {
+            if (addRect.isCrossed) {
+              rectangle.x = this.startX;
+              rectangle.y = this.startY;
+            }
+          });
+
+          this.drawRectangles();
+        }
       });
     });
   }
