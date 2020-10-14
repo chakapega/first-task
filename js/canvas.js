@@ -6,6 +6,8 @@ export class Canvas {
     this.canvas = selectedCanvas;
     this.ctx = this.canvas.getContext('2d');
     this.isDragOk = false;
+    this.offsetX;
+    this.offsetY;
     this.prevX;
     this.prevY;
     this.startX;
@@ -16,9 +18,9 @@ export class Canvas {
     this.setSize();
     this.setOffsetXandY();
     this.drawRectangles();
-    this.canvas.addEventListener('mousedown', e => this.mouseDownHandler(e));
-    this.canvas.addEventListener('mousemove', e => this.mouseMoveHandler(e));
-    this.canvas.addEventListener('mouseup', e => this.mouseUpHandler(e));
+    this.canvas.addEventListener('mousedown', this.mouseDownHandler.bind(this));
+    this.canvas.addEventListener('mousemove', this.mouseMoveHandler.bind(this));
+    this.canvas.addEventListener('mouseup', this.mouseUpHandler.bind(this));
   }
 
   setSize() {
@@ -107,9 +109,6 @@ export class Canvas {
   }
 
   mouseDownHandler(e) {
-    e.preventDefault();
-    e.stopPropagation();
-
     const currentX = e.clientX - this.offsetX;
     const currentY = e.clientY - this.offsetY;
 
@@ -134,9 +133,6 @@ export class Canvas {
   }
 
   mouseMoveHandler(e) {
-    e.preventDefault();
-    e.stopPropagation();
-
     if (!this.isDragOk) {
       return null;
     }
@@ -160,10 +156,7 @@ export class Canvas {
     this.prevY = currentY;
   }
 
-  mouseUpHandler(e) {
-    e.preventDefault();
-    e.stopPropagation();
-
+  mouseUpHandler() {
     this.isDragOk = false;
 
     arrayOfRectangles.forEach(rectangle => {
