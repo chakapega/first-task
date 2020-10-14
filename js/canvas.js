@@ -15,10 +15,10 @@ export class Canvas {
   start() {
     this.setSize();
     this.setOffsetXandY();
-    this.renderStartedRectangles();
-    this.addMouseDownHandler();
-    this.addMouseMoveHandler();
-    this.addMouseUpHandler();
+    this.drawStartedRectangles();
+    this.canvas.addEventListener('mousedown', e => this.mouseDownHandler(e));
+    this.canvas.addEventListener('mousemove', e => this.mouseMoveHandler(e));
+    this.canvas.addEventListener('mouseup', e => this.mouseUpHandler(e));
   }
 
   setSize() {
@@ -52,7 +52,7 @@ export class Canvas {
     this.ctx.clearRect(0, 0, width, height);
   }
 
-  renderStartedRectangles() {
+  drawStartedRectangles() {
     this.drawRectangles();
   }
 
@@ -77,45 +77,37 @@ export class Canvas {
     return true;
   }
 
-  addMouseDownHandler() {
-    this.canvas.addEventListener('mousedown', e => {
-      e.preventDefault();
-      e.stopPropagation();
+  mouseDownHandler(e) {
+    e.preventDefault();
+    e.stopPropagation();
 
-      const currentX = e.clientX - this.offsetX;
-      const currentY = e.clientY - this.offsetY;
+    const currentX = e.clientX - this.offsetX;
+    const currentY = e.clientY - this.offsetY;
 
-      this.isDragOk = false;
+    this.isDragOk = false;
 
-      arrayOfRectangles.forEach(rectangle => {
-        if (
-          currentX > rectangle.x &&
-          currentX < rectangle.x + rectangle.width &&
-          currentY > rectangle.y &&
-          currentY < rectangle.y + rectangle.height
-        ) {
-          this.isDragOk = true;
-          rectangle.isDragging = true;
-          this.startX = rectangle.x;
-          this.startY = rectangle.y;
-        }
-      });
-
-      this.prevX = currentX;
-      this.prevY = currentY;
+    arrayOfRectangles.forEach(rectangle => {
+      if (
+        currentX > rectangle.x &&
+        currentX < rectangle.x + rectangle.width &&
+        currentY > rectangle.y &&
+        currentY < rectangle.y + rectangle.height
+      ) {
+        this.isDragOk = true;
+        rectangle.isDragging = true;
+        this.startX = rectangle.x;
+        this.startY = rectangle.y;
+      }
     });
+
+    this.prevX = currentX;
+    this.prevY = currentY;
   }
 
-  addMouseMoveHandler() {
-    this.canvas.addEventListener('mousemove', e => {
-      e.preventDefault();
-      e.stopPropagation();
+  mouseMoveHandler(e) {
+    e.preventDefault();
+    e.stopPropagation();
 
-      this.moveRectangle(e);
-    });
-  }
-
-  moveRectangle(e) {
     if (!this.isDragOk) {
       return null;
     }
@@ -149,27 +141,25 @@ export class Canvas {
     this.prevY = currentY;
   }
 
-  addMouseUpHandler() {
-    this.canvas.addEventListener('mouseup', e => {
-      e.preventDefault();
-      e.stopPropagation();
+  mouseUpHandler(e) {
+    e.preventDefault();
+    e.stopPropagation();
 
-      this.isDragOk = false;
+    this.isDragOk = false;
 
-      arrayOfRectangles.forEach(rectangle => {
-        if (rectangle.isDragging) {
-          rectangle.isDragging = false;
+    arrayOfRectangles.forEach(rectangle => {
+      if (rectangle.isDragging) {
+        rectangle.isDragging = false;
 
-          arrayOfRectangles.forEach(addRect => {
-            if (addRect.isCrossed) {
-              rectangle.x = this.startX;
-              rectangle.y = this.startY;
-            }
-          });
+        arrayOfRectangles.forEach(addRect => {
+          if (addRect.isCrossed) {
+            rectangle.x = this.startX;
+            rectangle.y = this.startY;
+          }
+        });
 
-          this.drawRectangles();
-        }
-      });
+        this.drawRectangles();
+      }
     });
   }
 }
