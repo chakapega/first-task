@@ -16,7 +16,7 @@ export class Canvas {
 
   start() {
     this.setSize();
-    this.setOffsetXandY();
+    this.setOffsets_X_and_Y();
     this.drawRectangles();
     this.canvas.addEventListener('mousedown', this.mouseDownHandler.bind(this));
     this.canvas.addEventListener('mousemove', this.mouseMoveHandler.bind(this));
@@ -30,7 +30,7 @@ export class Canvas {
     this.canvas.height = height - canvasWindowIndent;
   }
 
-  setOffsetXandY() {
+  setOffsets_X_and_Y() {
     const domRect = canvas.getBoundingClientRect();
     const { left, top } = domRect;
 
@@ -41,10 +41,10 @@ export class Canvas {
   drawRectangles() {
     this.clear();
 
-    arrayOfRectangles.forEach(rectangleData => {
-      const { x, y, width, height } = rectangleData;
+    arrayOfRectangles.forEach(rectData => {
+      const { x, y, width, height } = rectData;
 
-      this.ctx.fillStyle = rectangleData.fillColor;
+      this.ctx.fillStyle = rectData.fillColor;
       this.ctx.fillRect(x, y, width, height);
     });
   }
@@ -55,21 +55,21 @@ export class Canvas {
     this.ctx.clearRect(0, 0, width, height);
   }
 
-  checkingForIntersectionOfRectAandB(rectA, rectB) {
-    const topSideOfRectangleA = rectA.y;
-    const leftSideOfRectangleA = rectA.x;
-    const rightSideOfRectangleA = rectA.x + rectA.width;
-    const bottomSideOfRectangleA = rectA.y + rectA.height;
-    const topSideOfRectangleB = rectB.y;
-    const leftSideOfRectangleB = rectB.x;
-    const rightSideOfRectangleB = rectB.x + rectB.width;
-    const bottomSideOfRectangleB = rectB.y + rectB.height;
+  checkRectangles_A_and_B_forIntersection(rectA, rectB) {
+    const topSideOfRectA = rectA.y;
+    const leftSideOfRectA = rectA.x;
+    const rightSideOfRectA = rectA.x + rectA.width;
+    const bottomSideOfRectA = rectA.y + rectA.height;
+    const topSideOfRectB = rectB.y;
+    const leftSideOfRectB = rectB.x;
+    const rightSideOfRectB = rectB.x + rectB.width;
+    const bottomSideOfRectB = rectB.y + rectB.height;
 
-    if (bottomSideOfRectangleA <= topSideOfRectangleB || rightSideOfRectangleA <= leftSideOfRectangleB) {
+    if (bottomSideOfRectA <= topSideOfRectB || rightSideOfRectA <= leftSideOfRectB) {
       return false;
     }
 
-    if (topSideOfRectangleA >= bottomSideOfRectangleB || rightSideOfRectangleB <= leftSideOfRectangleA) {
+    if (topSideOfRectA >= bottomSideOfRectB || rightSideOfRectB <= leftSideOfRectA) {
       return false;
     }
 
@@ -80,7 +80,7 @@ export class Canvas {
     let isCrossed = false;
 
     arrayOfRectangles.forEach(rectB => {
-      if (rectA !== rectB && this.checkingForIntersectionOfRectAandB(rectA, rectB)) {
+      if (rectA !== rectB && this.checkRectangles_A_and_B_forIntersection(rectA, rectB)) {
         isCrossed = true;
       }
     });
@@ -108,23 +108,21 @@ export class Canvas {
     });
   }
 
+  getCurrentXandY(e) {
+    return { currentX: e.clientX - this.offsetX, currentY: e.clientY - this.offsetY };
+  }
+
   mouseDownHandler(e) {
-    const currentX = e.clientX - this.offsetX;
-    const currentY = e.clientY - this.offsetY;
+    const { currentX, currentY } = this.getCurrentXandY(e);
 
     this.isDragOk = false;
 
-    arrayOfRectangles.forEach(rectangle => {
-      if (
-        currentX > rectangle.x &&
-        currentX < rectangle.x + rectangle.width &&
-        currentY > rectangle.y &&
-        currentY < rectangle.y + rectangle.height
-      ) {
-        this.startX = rectangle.x;
-        this.startY = rectangle.y;
+    arrayOfRectangles.forEach(rect => {
+      if (currentX > rect.x && currentX < rect.x + rect.width && currentY > rect.y && currentY < rect.y + rect.height) {
+        this.startX = rect.x;
+        this.startY = rect.y;
         this.isDragOk = true;
-        rectangle.isDragging = true;
+        rect.isDragging = true;
       }
     });
 
@@ -137,15 +135,14 @@ export class Canvas {
       return null;
     }
 
-    const currentX = e.clientX - this.offsetX;
-    const currentY = e.clientY - this.offsetY;
+    const { currentX, currentY } = this.getCurrentXandY(e);
     const xMovedDistance = currentX - this.prevX;
     const yNovedDistance = currentY - this.prevY;
 
-    arrayOfRectangles.forEach(rectangle => {
-      if (rectangle.isDragging) {
-        rectangle.x += xMovedDistance;
-        rectangle.y += yNovedDistance;
+    arrayOfRectangles.forEach(rect => {
+      if (rect.isDragging) {
+        rect.x += xMovedDistance;
+        rect.y += yNovedDistance;
         this.setCrossedPropToRectangles();
         this.setColorPropToRectangles();
       }
@@ -159,21 +156,23 @@ export class Canvas {
   mouseUpHandler() {
     this.isDragOk = false;
 
-    arrayOfRectangles.forEach(rectangle => {
-      if (rectangle.isDragging) {
-        rectangle.isDragging = false;
-
-        arrayOfRectangles.forEach(addRect => {
-          if (addRect.isCrossed) {
-            rectangle.x = this.startX;
-            rectangle.y = this.startY;
-          }
-        });
-
-        this.setCrossedPropToRectangles();
-        this.setColorPropToRectangles();
-        this.drawRectangles();
+    arrayOfRectangles.forEach(rectA => {
+      if (!rectA.isDragging) {
+        return null;
       }
+
+      rectA.isDragging = false;
+
+      arrayOfRectangles.forEach(rectB => {
+        if (rectB.isCrossed) {
+          rectA.x = this.startX;
+          rectA.y = this.startY;
+        }
+      });
+
+      this.setCrossedPropToRectangles();
+      this.setColorPropToRectangles();
+      this.drawRectangles();
     });
   }
 }
