@@ -80,9 +80,7 @@ export class Canvas {
     let isCrossed = false;
 
     arrayOfRectangles.forEach(rectB => {
-      if (rectA !== rectB && this.checkRectangles_A_and_B_forIntersection(rectA, rectB)) {
-        isCrossed = true;
-      }
+      if (rectA !== rectB && this.checkRectangles_A_and_B_forIntersection(rectA, rectB)) isCrossed = true;
     });
 
     return isCrossed;
@@ -90,21 +88,13 @@ export class Canvas {
 
   setCrossedPropToRectangles() {
     arrayOfRectangles.forEach(rect => {
-      if (this.checkRectangleForIntersection(rect)) {
-        rect.isCrossed = true;
-      } else {
-        rect.isCrossed = false;
-      }
+      rect.isCrossed = this.checkRectangleForIntersection(rect) ? true : false;
     });
   }
 
   setColorPropToRectangles() {
     arrayOfRectangles.forEach(rect => {
-      if (rect.isCrossed) {
-        rect.fillColor = redColorInHex;
-      } else {
-        rect.fillColor = startedRectangleFillColor;
-      }
+      rect.fillColor = rect.isCrossed ? redColorInHex : startedRectangleFillColor;
     });
   }
 
