@@ -2,22 +2,24 @@ import { startedRectangleFillColor } from './shared/constants.js';
 
 export const arrayOfRectangles = [
   {
-    x: 20,
-    y: 20,
+    x: 320,
+    y: 220,
     width: 120,
     height: 60,
     isDragging: false,
     fillColor: startedRectangleFillColor,
     isCrossed: false,
+    isSticked: false,
   },
   {
-    x: 20,
-    y: 110,
+    x: 320,
+    y: 370,
     width: 160,
-    height: 60,
+    height: 100,
     isDragging: false,
     fillColor: startedRectangleFillColor,
     isCrossed: false,
+    isSticked: false,
   },
   {
     x: 20,
@@ -27,6 +29,7 @@ export const arrayOfRectangles = [
     isDragging: false,
     fillColor: startedRectangleFillColor,
     isCrossed: false,
+    isSticked: false,
   },
   {
     x: 20,
@@ -36,5 +39,6 @@ export const arrayOfRectangles = [
     isDragging: false,
     fillColor: startedRectangleFillColor,
     isCrossed: false,
+    isSticked: false,
   },
 ];
