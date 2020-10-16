@@ -15,9 +15,9 @@ export const arrayOfRectangles = [
   {
     id: 2,
     x: 320,
-    y: 300,
+    y: 240,
     width: 160,
-    height: 60,
+    height: 160,
     isDragging: false,
     fillColor: startedRectangleFillColor,
     isCrossed: false,

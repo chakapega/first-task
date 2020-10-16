@@ -9,10 +9,6 @@ export class Canvas {
     this.isDragOk = false;
     this.offsetX;
     this.offsetY;
-    this.prevX;
-    this.prevY;
-    this.startX;
-    this.startY;
   }
 
   start() {
