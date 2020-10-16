@@ -5,6 +5,7 @@ export class Canvas {
   constructor(selectedCanvas) {
     this.canvas = selectedCanvas;
     this.ctx = this.canvas.getContext('2d');
+    this.draggingRect;
     this.isDragOk = false;
     this.offsetX;
     this.offsetY;
@@ -41,11 +42,18 @@ export class Canvas {
   drawRectangles() {
     this.clear();
 
-    arrayOfRectangles.forEach(rectData => {
-      const { x, y, width, height } = rectData;
+    arrayOfRectangles.forEach(rect => {
+      if (rect.isSticked) {
+        const { stickedX, stickedY, width, height } = rect;
 
-      this.ctx.fillStyle = rectData.fillColor;
-      this.ctx.fillRect(x, y, width, height);
+        this.ctx.fillStyle = rect.fillColor;
+        this.ctx.fillRect(stickedX, stickedY, width, height);
+      } else {
+        const { x, y, width, height } = rect;
+
+        this.ctx.fillStyle = rect.fillColor;
+        this.ctx.fillRect(x, y, width, height);
+      }
     });
   }
 
@@ -55,7 +63,7 @@ export class Canvas {
     this.ctx.clearRect(0, 0, width, height);
   }
 
-  checkRectangles_A_and_B_forIntersection(rectA, rectB) {
+  isRectangle_a_and_b_crossed(rectA, rectB) {
     const topSideOfRectA = rectA.y;
     const leftSideOfRectA = rectA.x;
     const rightSideOfRectA = rectA.x + rectA.width;
@@ -76,7 +84,7 @@ export class Canvas {
     return true;
   }
 
-  checkRectangles_A_and_B_forSticking(rectA, rectB) {
+  isRectangle_a_and_b_sticked(rectA, rectB) {
     const topSideOfRectA = rectA.y - stickyDistance;
     const leftSideOfRectA = rectA.x - stickyDistance;
     const rightSideOfRectA = rectA.x + rectA.width + stickyDistance;
@@ -97,35 +105,31 @@ export class Canvas {
     return true;
   }
 
-  checkRectangleForIntersection(rectA) {
-    let isCrossed = false;
+  isCrossedRectangle(rectA) {
+    return arrayOfRectangles.reduce((accumulator, rectB) => {
+      if (rectA !== rectB && this.isRectangle_a_and_b_crossed(rectA, rectB)) accumulator = true;
 
-    arrayOfRectangles.forEach(rectB => {
-      if (rectA !== rectB && this.checkRectangles_A_and_B_forIntersection(rectA, rectB)) isCrossed = true;
-    });
-
-    return isCrossed;
+      return accumulator;
+    }, false);
   }
 
-  checkRectangleForSticking(rectA) {
-    let isSticked = false;
+  isStickedRectangle(rectA) {
+    return arrayOfRectangles.reduce((accumulator, rectB) => {
+      if (rectA !== rectB && this.isRectangle_a_and_b_sticked(rectA, rectB)) accumulator = true;
 
-    arrayOfRectangles.forEach(rectB => {
-      if (rectA !== rectB && this.checkRectangles_A_and_B_forSticking(rectA, rectB)) isSticked = true;
-    });
-
-    return isSticked;
+      return accumulator;
+    }, false);
   }
 
   setStickedPropToRectangles() {
     arrayOfRectangles.forEach(rect => {
-      rect.isSticked = this.checkRectangleForSticking(rect) ? true : false;
+      rect.isSticked = this.isStickedRectangle(rect) ? true : false;
     });
   }
 
   setCrossedPropToRectangles() {
     arrayOfRectangles.forEach(rect => {
-      rect.isCrossed = this.checkRectangleForIntersection(rect) ? true : false;
+      rect.isCrossed = this.isCrossedRectangle(rect) ? true : false;
     });
   }
 
@@ -135,7 +139,7 @@ export class Canvas {
     });
   }
 
-  setStickedPositionToDraggingRectangle(draggingRect, standingRect) {
+  setStickedSideToDraggingRectangle(draggingRect, standingRect) {
     const draggingRectCenter = {
       x: draggingRect.x + draggingRect.width / 2,
       y: draggingRect.y + draggingRect.height / 2,
@@ -172,54 +176,99 @@ export class Canvas {
     }
   }
 
-  changeCoordinatesOfRectangleForConcatenation() {
+  getNearestStickedRectangleToDraggingRectangle(draggingRect, arrayOfStickedRects) {
+    const getDistanceBetweenRects = (rectA, rectB) => {
+      const centerOfRectA = {
+        x: rectA.x + rectA.width / 2,
+        y: rectA.y + rectA.height / 2,
+      };
+      const centerOfRectB = {
+        x: rectB.x + rectB.width / 2,
+        y: rectB.y + rectB.height / 2,
+      };
+
+      return Math.sqrt((centerOfRectB.x - centerOfRectA.x) ** 2 + (centerOfRectB.y - centerOfRectA.y) ** 2);
+    };
+
+    const arrayOfDistancesBetweenRects = [];
+    let nearestStickedRectangle;
+    let minimalDistance;
+
+    arrayOfStickedRects.forEach(stickedRect => {
+      arrayOfDistancesBetweenRects.push(getDistanceBetweenRects(draggingRect, stickedRect));
+    });
+
+    minimalDistance = Math.min(...arrayOfDistancesBetweenRects);
+
+    arrayOfDistancesBetweenRects.forEach((distance, index) => {
+      if (distance === minimalDistance) {
+        nearestStickedRectangle = arrayOfStickedRects[index];
+      }
+    });
+
+    return nearestStickedRectangle;
+  }
+
+  changeCoordinatesOfStickingRectangles() {
     const [draggingAndStickingRect] = arrayOfRectangles.filter(rect => rect.isDragging && rect.isSticked);
-    const [standingAndStickedRect] = arrayOfRectangles.filter(rect => !rect.isDragging && rect.isSticked);
+    const arrayOfStandingAndStickingRects = arrayOfRectangles.filter(rect => !rect.isDragging && rect.isSticked);
 
-    if (!draggingAndStickingRect) return null;
+    if (draggingAndStickingRect) {
+      const nearestStandingAndStickingRect = this.getNearestStickedRectangleToDraggingRectangle(
+        draggingAndStickingRect,
+        arrayOfStandingAndStickingRects
+      );
 
-    this.setStickedPositionToDraggingRectangle(draggingAndStickingRect, standingAndStickedRect);
+      this.setStickedSideToDraggingRectangle(draggingAndStickingRect, nearestStandingAndStickingRect);
 
-    switch (draggingAndStickingRect.stickedPosition) {
-      case 'top-left':
-        draggingAndStickingRect.x = standingAndStickedRect.x;
-        draggingAndStickingRect.y = standingAndStickedRect.y - draggingAndStickingRect.height;
-        break;
-      case 'top-right':
-        draggingAndStickingRect.x =
-          standingAndStickedRect.x + standingAndStickedRect.width - draggingAndStickingRect.width;
-        draggingAndStickingRect.y = standingAndStickedRect.y - draggingAndStickingRect.height;
-        break;
-      case 'bottom-right':
-        draggingAndStickingRect.x =
-          standingAndStickedRect.x + standingAndStickedRect.width - draggingAndStickingRect.width;
-        draggingAndStickingRect.y = standingAndStickedRect.y + standingAndStickedRect.height;
-        break;
-      case 'bottom-left':
-        draggingAndStickingRect.x = standingAndStickedRect.x;
-        draggingAndStickingRect.y = standingAndStickedRect.y + standingAndStickedRect.height;
-        break;
-      case 'left-bottom':
-        draggingAndStickingRect.x = standingAndStickedRect.x - draggingAndStickingRect.width;
-        draggingAndStickingRect.y =
-          standingAndStickedRect.y + standingAndStickedRect.height - draggingAndStickingRect.height;
-        break;
-      case 'left-top':
-        draggingAndStickingRect.x = standingAndStickedRect.x - draggingAndStickingRect.width;
-        draggingAndStickingRect.y = standingAndStickedRect.y;
-        break;
-      case 'right-top':
-        draggingAndStickingRect.x = standingAndStickedRect.x + standingAndStickedRect.width;
-        draggingAndStickingRect.y = standingAndStickedRect.y;
-        break;
-      case 'right-bottom':
-        draggingAndStickingRect.x = standingAndStickedRect.x + standingAndStickedRect.width;
-        draggingAndStickingRect.y =
-          standingAndStickedRect.y + standingAndStickedRect.height - draggingAndStickingRect.height;
-        break;
+      switch (draggingAndStickingRect.stickedPosition) {
+        case 'top-left':
+          draggingAndStickingRect.stickedX = nearestStandingAndStickingRect.x;
+          draggingAndStickingRect.stickedY = nearestStandingAndStickingRect.y - draggingAndStickingRect.height;
+          break;
+        case 'top-right':
+          draggingAndStickingRect.stickedX =
+            nearestStandingAndStickingRect.x + nearestStandingAndStickingRect.width - draggingAndStickingRect.width;
+          draggingAndStickingRect.stickedY = nearestStandingAndStickingRect.y - draggingAndStickingRect.height;
+          break;
+        case 'bottom-right':
+          draggingAndStickingRect.stickedX =
+            nearestStandingAndStickingRect.x + nearestStandingAndStickingRect.width - draggingAndStickingRect.width;
+          draggingAndStickingRect.stickedY = nearestStandingAndStickingRect.y + nearestStandingAndStickingRect.height;
+          break;
+        case 'bottom-left':
+          draggingAndStickingRect.stickedX = nearestStandingAndStickingRect.x;
+          draggingAndStickingRect.stickedY = nearestStandingAndStickingRect.y + nearestStandingAndStickingRect.height;
+          break;
+        case 'left-bottom':
+          draggingAndStickingRect.stickedX = nearestStandingAndStickingRect.x - draggingAndStickingRect.width;
+          draggingAndStickingRect.stickedY =
+            nearestStandingAndStickingRect.y + nearestStandingAndStickingRect.height - draggingAndStickingRect.height;
+          break;
+        case 'left-top':
+          draggingAndStickingRect.stickedX = nearestStandingAndStickingRect.x - draggingAndStickingRect.width;
+          draggingAndStickingRect.stickedY = nearestStandingAndStickingRect.y;
+          break;
+        case 'right-top':
+          draggingAndStickingRect.stickedX = nearestStandingAndStickingRect.x + nearestStandingAndStickingRect.width;
+          draggingAndStickingRect.stickedY = nearestStandingAndStickingRect.y;
+          break;
+        case 'right-bottom':
+          draggingAndStickingRect.stickedX = nearestStandingAndStickingRect.x + nearestStandingAndStickingRect.width;
+          draggingAndStickingRect.stickedY =
+            nearestStandingAndStickingRect.y + nearestStandingAndStickingRect.height - draggingAndStickingRect.height;
+          break;
 
-      default:
-        break;
+        default:
+          break;
+      }
+    }
+
+    if (arrayOfStandingAndStickingRects.length) {
+      arrayOfStandingAndStickingRects.forEach(rect => {
+        rect.stickedX = rect.x;
+        rect.stickedY = rect.y;
+      });
     }
   }
 
@@ -230,42 +279,42 @@ export class Canvas {
   mouseDownHandler(e) {
     const { currentX, currentY } = this.getCurrentXandY(e);
 
-    this.isDragOk = false;
-
-    arrayOfRectangles.forEach(rect => {
-      if (currentX > rect.x && currentX < rect.x + rect.width && currentY > rect.y && currentY < rect.y + rect.height) {
-        this.startX = rect.x;
-        this.startY = rect.y;
+    for (let i = 0; i < arrayOfRectangles.length; i++) {
+      if (
+        currentX >= arrayOfRectangles[i].x &&
+        currentX <= arrayOfRectangles[i].x + arrayOfRectangles[i].width &&
+        currentY >= arrayOfRectangles[i].y &&
+        currentY <= arrayOfRectangles[i].y + arrayOfRectangles[i].height
+      ) {
+        this.draggingRect = arrayOfRectangles[i];
+        this.draggingRect.startX = arrayOfRectangles[i].x;
+        this.draggingRect.startY = arrayOfRectangles[i].y;
+        this.draggingRect.isDragging = true;
+        this.draggingRect.prevX = currentX;
+        this.draggingRect.prevY = currentY;
         this.isDragOk = true;
-        rect.isDragging = true;
-      }
-    });
 
-    this.prevX = currentX;
-    this.prevY = currentY;
+        break;
+      }
+    }
   }
 
   mouseMoveHandler(e) {
     if (!this.isDragOk) return null;
 
     const { currentX, currentY } = this.getCurrentXandY(e);
-    const xMovedDistance = currentX - this.prevX;
-    const yNovedDistance = currentY - this.prevY;
+    const xMovedDistance = currentX - this.draggingRect.prevX;
+    const yNovedDistance = currentY - this.draggingRect.prevY;
 
-    arrayOfRectangles.forEach(rect => {
-      if (rect.isDragging) {
-        rect.x += xMovedDistance;
-        rect.y += yNovedDistance;
-      }
-    });
-
-    this.setCrossedPropToRectangles();
+    this.draggingRect.x += xMovedDistance;
+    this.draggingRect.y += yNovedDistance;
     this.setStickedPropToRectangles();
-    this.changeCoordinatesOfRectangleForConcatenation();
+    this.setCrossedPropToRectangles();
+    this.changeCoordinatesOfStickingRectangles();
     this.setColorPropToRectangles();
     this.drawRectangles();
-    this.prevX = currentX;
-    this.prevY = currentY;
+    this.draggingRect.prevX = currentX;
+    this.draggingRect.prevY = currentY;
   }
 
   mouseUpHandler() {
