@@ -2,7 +2,6 @@ import { startedRectangleFillColor } from './shared/constants.js';
 
 export const arrayOfRectangles = [
   {
-    id: 1,
     x: 320,
     y: 140,
     width: 100,
@@ -13,7 +12,6 @@ export const arrayOfRectangles = [
     isSticked: false,
   },
   {
-    id: 2,
     x: 320,
     y: 240,
     width: 160,
@@ -24,7 +22,6 @@ export const arrayOfRectangles = [
     isSticked: false,
   },
   {
-    id: 3,
     x: 320,
     y: 480,
     width: 220,

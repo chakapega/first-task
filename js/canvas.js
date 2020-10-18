@@ -39,7 +39,7 @@ export class Canvas {
     this.clear();
 
     arrayOfRectangles.forEach(rect => {
-      if (rect.isSticked) {
+      if (rect.isSticked && !rect.isCrossed) {
         const { stickedX, stickedY, width, height } = rect;
 
         this.ctx.fillStyle = rect.fillColor;
@@ -147,27 +147,27 @@ export class Canvas {
 
     if (draggingRectCenter.x < standingRectCenter.x && draggingRectCenter.y < standingRectCenter.y) {
       if (standingRectCenter.x - draggingRectCenter.x < standingRectCenter.y - draggingRectCenter.y) {
-        draggingRect.stickedPosition = 'top-left';
+        draggingRect.stickedSide = 'top-left';
       } else {
-        draggingRect.stickedPosition = 'left-top';
+        draggingRect.stickedSide = 'left-top';
       }
     } else if (draggingRectCenter.x > standingRectCenter.x && draggingRectCenter.y < standingRectCenter.y) {
       if (draggingRectCenter.x - standingRectCenter.x < standingRectCenter.y - draggingRectCenter.y) {
-        draggingRect.stickedPosition = 'top-right';
+        draggingRect.stickedSide = 'top-right';
       } else {
-        draggingRect.stickedPosition = 'right-top';
+        draggingRect.stickedSide = 'right-top';
       }
     } else if (draggingRectCenter.x > standingRectCenter.x && draggingRectCenter.y > standingRectCenter.y) {
       if (draggingRectCenter.x - standingRectCenter.x > draggingRectCenter.y - standingRectCenter.y) {
-        draggingRect.stickedPosition = 'right-bottom';
+        draggingRect.stickedSide = 'right-bottom';
       } else {
-        draggingRect.stickedPosition = 'bottom-right';
+        draggingRect.stickedSide = 'bottom-right';
       }
     } else if (draggingRectCenter.x < standingRectCenter.x && draggingRectCenter.y > standingRectCenter.y) {
       if (standingRectCenter.x - draggingRectCenter.x > draggingRectCenter.y - standingRectCenter.y) {
-        draggingRect.stickedPosition = 'left-bottom';
+        draggingRect.stickedSide = 'left-bottom';
       } else {
-        draggingRect.stickedPosition = 'bottom-left';
+        draggingRect.stickedSide = 'bottom-left';
       }
     }
   }
@@ -206,7 +206,7 @@ export class Canvas {
   }
 
   changeCoordinatesOfStickingRectangles() {
-    const [draggingAndStickingRect] = arrayOfRectangles.filter(rect => rect.isDragging && rect.isSticked);
+    const draggingAndStickingRect = this.draggingRect.isSticked ? this.draggingRect : null;
     const arrayOfStandingAndStickingRects = arrayOfRectangles.filter(rect => !rect.isDragging && rect.isSticked);
 
     if (draggingAndStickingRect) {
@@ -217,7 +217,7 @@ export class Canvas {
 
       this.setStickedSideToDraggingRectangle(draggingAndStickingRect, nearestStandingAndStickingRect);
 
-      switch (draggingAndStickingRect.stickedPosition) {
+      switch (draggingAndStickingRect.stickedSide) {
         case 'top-left':
           draggingAndStickingRect.stickedX = nearestStandingAndStickingRect.x;
           draggingAndStickingRect.stickedY = nearestStandingAndStickingRect.y - draggingAndStickingRect.height;
@@ -262,14 +262,34 @@ export class Canvas {
 
     if (arrayOfStandingAndStickingRects.length) {
       arrayOfStandingAndStickingRects.forEach(rect => {
-        rect.stickedX = rect.x;
-        rect.stickedY = rect.y;
+        if (!rect.stickedX && !rect.stickedY) {
+          rect.stickedX = rect.x;
+          rect.stickedY = rect.y;
+        }
       });
     }
   }
 
   getCurrentXandY(e) {
     return { currentX: e.clientX - this.offsetX, currentY: e.clientY - this.offsetY };
+  }
+
+  removeUnnecessaryPropertiesFromRectangles() {
+    arrayOfRectangles.forEach(rect => {
+      if (!rect.isSticked) {
+        delete rect.stickedX;
+        delete rect.stickedY;
+      }
+    });
+  }
+
+  changeCoordinatesOfRectangleIfHaveStickyCoordinates() {
+    arrayOfRectangles.forEach(rect => {
+      if (rect.stickedX && rect.stickedY) {
+        rect.x = rect.stickedX;
+        rect.y = rect.stickedY;
+      }
+    });
   }
 
   mouseDownHandler(e) {
@@ -286,8 +306,8 @@ export class Canvas {
         this.draggingRect.startX = arrayOfRectangles[i].x;
         this.draggingRect.startY = arrayOfRectangles[i].y;
         this.draggingRect.isDragging = true;
-        this.draggingRect.prevX = currentX;
-        this.draggingRect.prevY = currentY;
+        this.draggingRect.prevCurrentX = currentX;
+        this.draggingRect.prevCurrentY = currentY;
         this.isDragOk = true;
 
         break;
@@ -299,38 +319,33 @@ export class Canvas {
     if (!this.isDragOk) return null;
 
     const { currentX, currentY } = this.getCurrentXandY(e);
-    const xMovedDistance = currentX - this.draggingRect.prevX;
-    const yNovedDistance = currentY - this.draggingRect.prevY;
+    const xMovedDistance = currentX - this.draggingRect.prevCurrentX;
+    const yMovedDistance = currentY - this.draggingRect.prevCurrentY;
 
     this.draggingRect.x += xMovedDistance;
-    this.draggingRect.y += yNovedDistance;
+    this.draggingRect.y += yMovedDistance;
+    this.draggingRect.prevCurrentX = currentX;
+    this.draggingRect.prevCurrentY = currentY;
     this.setStickedPropToRectangles();
     this.setCrossedPropToRectangles();
     this.changeCoordinatesOfStickingRectangles();
     this.setColorPropToRectangles();
     this.drawRectangles();
-    this.draggingRect.prevX = currentX;
-    this.draggingRect.prevY = currentY;
   }
 
   mouseUpHandler() {
     this.isDragOk = false;
+    this.draggingRect.isDragging = false;
 
-    arrayOfRectangles.forEach(rectA => {
-      if (!rectA.isDragging) return null;
+    if (this.draggingRect.isCrossed) {
+      this.draggingRect.x = this.draggingRect.startX;
+      this.draggingRect.y = this.draggingRect.startY;
+    }
 
-      rectA.isDragging = false;
-
-      arrayOfRectangles.forEach(rectB => {
-        if (rectB.isCrossed) {
-          rectA.x = this.startX;
-          rectA.y = this.startY;
-        }
-      });
-
-      this.setCrossedPropToRectangles();
-      this.setColorPropToRectangles();
-      this.drawRectangles();
-    });
+    this.removeUnnecessaryPropertiesFromRectangles();
+    this.changeCoordinatesOfRectangleIfHaveStickyCoordinates();
+    this.setCrossedPropToRectangles();
+    this.setColorPropToRectangles();
+    this.drawRectangles();
   }
 }
