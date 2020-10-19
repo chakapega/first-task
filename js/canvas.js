@@ -102,30 +102,30 @@ export class Canvas {
   }
 
   isCrossedRectangle(rectA) {
-    return arrayOfRectangles.reduce((accumulator, rectB) => {
-      if (rectA !== rectB && this.isRectangle_a_and_b_crossed(rectA, rectB)) accumulator = true;
+    return arrayOfRectangles.reduce((acc, rectB) => {
+      if (rectA !== rectB && this.isRectangle_a_and_b_crossed(rectA, rectB)) acc = true;
 
-      return accumulator;
+      return acc;
     }, false);
   }
 
   isStickedRectangle(rectA) {
-    return arrayOfRectangles.reduce((accumulator, rectB) => {
-      if (rectA !== rectB && this.isRectangle_a_and_b_sticked(rectA, rectB)) accumulator = true;
+    return arrayOfRectangles.reduce((acc, rectB) => {
+      if (rectA !== rectB && this.isRectangle_a_and_b_sticked(rectA, rectB)) acc = true;
 
-      return accumulator;
+      return acc;
     }, false);
   }
 
   setStickedPropToRectangles() {
     arrayOfRectangles.forEach(rect => {
-      rect.isSticked = this.isStickedRectangle(rect) ? true : false;
+      rect.isSticked = this.isStickedRectangle(rect);
     });
   }
 
   setCrossedPropToRectangles() {
     arrayOfRectangles.forEach(rect => {
-      rect.isCrossed = this.isCrossedRectangle(rect) ? true : false;
+      rect.isCrossed = this.isCrossedRectangle(rect);
     });
   }
 
@@ -346,7 +346,6 @@ export class Canvas {
     if (this.draggingRect.isCrossed) {
       this.draggingRect.x = this.draggingRect.startX;
       this.draggingRect.y = this.draggingRect.startY;
-
       this.setStickedPropToRectangles();
       this.setCrossedPropToRectangles();
       this.setColorPropToRectangles();
