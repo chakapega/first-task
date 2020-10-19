@@ -258,14 +258,16 @@ export class Canvas {
         default:
           break;
       }
+
+      const { stickedX, stickedY } = draggingAndStickingRect;
+
+      draggingAndStickingRect.arrayOfPrevStickedCoordinates.push({ stickedX, stickedY });
     }
 
     if (arrayOfStandingAndStickingRects.length) {
       arrayOfStandingAndStickingRects.forEach(rect => {
-        if (!rect.stickedX && !rect.stickedY) {
-          rect.stickedX = rect.x;
-          rect.stickedY = rect.y;
-        }
+        rect.stickedX = rect.x;
+        rect.stickedY = rect.y;
       });
     }
   }
@@ -274,7 +276,7 @@ export class Canvas {
     return { currentX: e.clientX - this.offsetX, currentY: e.clientY - this.offsetY };
   }
 
-  removeUnnecessaryPropertiesFromRectangles() {
+  removeStickedCoordinates() {
     arrayOfRectangles.forEach(rect => {
       if (!rect.isSticked) {
         delete rect.stickedX;
@@ -308,6 +310,7 @@ export class Canvas {
         this.draggingRect.isDragging = true;
         this.draggingRect.prevCurrentX = currentX;
         this.draggingRect.prevCurrentY = currentY;
+        this.draggingRect.arrayOfPrevStickedCoordinates = [];
         this.isDragOk = true;
 
         break;
@@ -328,24 +331,38 @@ export class Canvas {
     this.draggingRect.prevCurrentY = currentY;
     this.setStickedPropToRectangles();
     this.setCrossedPropToRectangles();
+    this.removeStickedCoordinates();
     this.changeCoordinatesOfStickingRectangles();
     this.setColorPropToRectangles();
     this.drawRectangles();
   }
 
   mouseUpHandler() {
+    if (!this.draggingRect) return null;
+
     this.isDragOk = false;
     this.draggingRect.isDragging = false;
 
     if (this.draggingRect.isCrossed) {
       this.draggingRect.x = this.draggingRect.startX;
       this.draggingRect.y = this.draggingRect.startY;
+
+      this.setStickedPropToRectangles();
+      this.setCrossedPropToRectangles();
+      this.setColorPropToRectangles();
+      this.removeStickedCoordinates();
+      this.changeCoordinatesOfStickingRectangles();
+
+      const { stickedX, stickedY } = this.draggingRect.arrayOfPrevStickedCoordinates[0];
+
+      if (this.draggingRect.isSticked) {
+        this.draggingRect.stickedX = stickedX;
+        this.draggingRect.stickedY = stickedY;
+      }
+
+      this.drawRectangles();
     }
 
-    this.removeUnnecessaryPropertiesFromRectangles();
     this.changeCoordinatesOfRectangleIfHaveStickyCoordinates();
-    this.setCrossedPropToRectangles();
-    this.setColorPropToRectangles();
-    this.drawRectangles();
   }
 }
